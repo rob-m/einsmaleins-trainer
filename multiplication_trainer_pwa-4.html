@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
+    <meta name="apple-mobile-web-app-title" content="1x1 Trainer">
+    <meta name="theme-color" content="#4f46e5">
+    <title>Kleines 1x1 Trainer</title>
+    
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiS2xlaW5lcyAxeDEgVHJhaW5lciIsInNob3J0X25hbWUiOiIxeDEgVHJhaW5lciIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsInRoZW1lX2NvbG9yIjoiIzRmNDZlNSIsImJhY2tncm91bmRfY29sb3IiOiIjMTExODI3IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCUzQiw8c3ZnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCcgdmlld0JveD0nMCAwIDQ4IDQ4JyBmaWxsPSdub25lJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxyZWN0IHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCcgcng9JzgnIGZpbGw9JyM0ZjQ2ZTUnLz48dGV4dCB4PSc1MCUnIHk9JzUwJScgZm9udC1mYW1pbHk9J0FyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmJyBmb250LXNpemU9JzI0JyBmaWxsPSd3aGl0ZScgdGV4dC1hbmNob3I9J21pZGRsZScgZHk9Jy4zZW0nPng8L3RleHQ+PC9zdmc+IiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJzaXplcyI6IjQ4eDQ4In1dfQ==">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg width='180' height='180' viewBox='0 0 180 180' fill='none' xmlns='http://www.w3.org/2000/svg'><rect width='180' height='180' rx='30' fill='%234f46e5'/><text x='50%' y='50%' font-family='Arial,Helvetica,sans-serif' font-size='90' fill='white' text-anchor='middle' dy='.3em'>×</text></svg>">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-display {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 30px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #10b981, #059669);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .microphone-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            font-size: 18px;
+            min-height: 30px;
+        }
+
+        .mic-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .mic-listening {
+            background: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+
+        .mic-waiting {
+            background: #6b7280;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .score {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .score-number {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .feedback {
+            margin: 15px 0;
+            font-size: 20px;
+            font-weight: bold;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feedback.correct {
+            color: #10b981;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .feedback.incorrect {
+            color: #ef4444;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .settings {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .setting-group {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .setting-label {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .range-slider {
+            -webkit-appearance: none;
+            width: 150px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .task-display {
+                font-size: 36px;
+                min-height: 60px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Kleines 1×1 Trainer</h1>
+        
+        <div class="task-display" id="taskDisplay">Bereit zum Üben?</div>
+        
+        <div class="microphone-status">
+            <div class="mic-icon mic-waiting" id="micIcon">🎤</div>
+            <span id="micStatus">Mikrofon bereit</span>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">Neue Aufgabe</button>
+        </div>
+        
+        <div class="score">
+            <div class="score-item">
+                <div class="score-number" id="correctScore">0</div>
+                <div>Richtig</div>
+            </div>
+            <div class="score-item">
+                <div class="score-number" id="totalScore">0</div>
+                <div>Gesamt</div>
+            </div>
+            <div class="score-item">
+                <div class="score-number" id="percentageScore">0%</div>
+                <div>Quote</div>
+            </div>
+        </div>
+        
+        <div class="settings">
+            <div class="setting-group">
+                <label class="setting-label">Einmaleins-Reihe:</label>
+                <select id="multiplicationTable" style="padding: 8px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); min-width: 120px;">
+                    <option value="all" selected>Alle Reihen</option>
+                    <option value="2">2er Reihe</option>
+                    <option value="3">3er Reihe</option>
+                    <option value="4">4er Reihe</option>
+                    <option value="5">5er Reihe</option>
+                    <option value="6">6er Reihe</option>
+                    <option value="7">7er Reihe</option>
+                    <option value="8">8er Reihe</option>
+                    <option value="9">9er Reihe</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="install-prompt" id="installPrompt">
+        <p>Diese App kann als PWA installiert werden!</p>
+        <button onclick="installPWA()" style="margin-top: 10px; padding: 8px 16px; background: #4f46e5; color: white; border: none; border-radius: 5px;">Installieren</button>
+        <button onclick="dismissInstallPrompt()" style="margin-top: 10px; margin-left: 10px; padding: 8px 16px; background: transparent; color: white; border: 1px solid white; border-radius: 5px;">Später</button>
+    </div>
+
+    <script>
+        class MultiplicationTrainer {
+            constructor() {
+                this.currentTask = null;
+                this.correctAnswers = 0;
+                this.totalAnswers = 0;
+                this.isListening = false;
+                this.recognition = null;
+                this.synthesis = window.speechSynthesis;
+                this.currentUtterance = null;
+                
+                this.initElements();
+                this.initSpeechRecognition();
+                this.initEventListeners();
+                this.updateScore();
+            }
+            
+            initElements() {
+                this.taskDisplay = document.getElementById('taskDisplay');
+                this.micIcon = document.getElementById('micIcon');
+                this.micStatus = document.getElementById('micStatus');
+                this.feedback = document.getElementById('feedback');
+                this.startBtn = document.getElementById('startBtn');
+                this.correctScore = document.getElementById('correctScore');
+                this.totalScore = document.getElementById('totalScore');
+                this.percentageScore = document.getElementById('percentageScore');
+                this.multiplicationTable = document.getElementById('multiplicationTable');
+            }
+            
+            initSpeechRecognition() {
+                if ('webkitSpeechRecognition' in window) {
+                    this.recognition = new webkitSpeechRecognition();
+                } else if ('SpeechRecognition' in window) {
+                    this.recognition = new SpeechRecognition();
+                } else {
+                    this.micStatus.textContent = 'Spracherkennung nicht verfügbar';
+                    return;
+                }
+                
+                this.recognition.lang = 'de-DE';
+                this.recognition.interimResults = false;
+                this.recognition.maxAlternatives = 1;
+                this.recognition.continuous = false;
+                
+                this.recognition.onstart = () => {
+                    this.isListening = true;
+                    this.updateMicrophoneStatus();
+                };
+                
+                this.recognition.onend = () => {
+                    this.isListening = false;
+                    this.updateMicrophoneStatus();
+                };
+                
+                this.recognition.onresult = (event) => {
+                    const result = event.results[0][0].transcript;
+                    this.processAnswer(result);
+                };
+                
+                this.recognition.onerror = (event) => {
+                    console.error('Spracherkennungsfehler:', event.error);
+                    this.micStatus.textContent = `Fehler: ${event.error}`;
+                    this.isListening = false;
+                    this.updateMicrophoneStatus();
+                };
+            }
+            
+            initEventListeners() {
+                this.startBtn.addEventListener('click', () => {
+                    if (this.currentTask) {
+                        // Wenn bereits eine Aufgabe da ist, spreche sie mit Lösung
+                        this.speakFullSolution();
+                    } else {
+                        this.generateNewTask();
+                    }
+                });
+                
+                // Bei Änderung der Reihe sofort neue Aufgabe stellen
+                this.multiplicationTable.addEventListener('change', () => {
+                    this.generateNewTask();
+                });
+            }
+            
+            generateNewTask() {
+                // Stoppe alle laufenden Sprachausgaben und Erkennungen
+                this.synthesis.cancel();
+                if (this.recognition && this.isListening) {
+                    this.recognition.stop();
+                }
+                
+                const tableSelection = this.multiplicationTable.value;
+                let num1, num2;
+                
+                if (tableSelection === 'all') {
+                    // Alle Reihen von 2-9
+                    num1 = Math.floor(Math.random() * 8) + 2; // 2-9
+                    num2 = Math.floor(Math.random() * 8) + 2; // 2-9
+                } else {
+                    // Spezifische Reihe
+                    const selectedTable = parseInt(tableSelection);
+                    if (Math.random() < 0.5) {
+                        num1 = selectedTable;
+                        num2 = Math.floor(Math.random() * 9) + 1; // 1-9
+                    } else {
+                        num1 = Math.floor(Math.random() * 9) + 1; // 1-9
+                        num2 = selectedTable;
+                    }
+                }
+                
+                this.currentTask = {
+                    num1: num1,
+                    num2: num2,
+                    result: num1 * num2
+                };
+                
+                this.taskDisplay.textContent = '🎧 Höre zu...';
+                this.feedback.textContent = '';
+                this.feedback.className = 'feedback';
+                this.startBtn.disabled = true;
+                
+                // Kurze Verzögerung, dann sprechen
+                setTimeout(() => {
+                    this.speakTask();
+                }, 500);
+            }
+            
+            speakTask() {
+                if (!this.currentTask) return;
+                
+                // Stoppe vorherige Sprachausgabe
+                this.synthesis.cancel();
+                
+                const text = `${this.currentTask.num1} mal ${this.currentTask.num2}`;
+                this.currentUtterance = new SpeechSynthesisUtterance(text);
+                this.currentUtterance.lang = 'de-DE';
+                this.currentUtterance.rate = 0.9; // Feste Geschwindigkeit
+                this.currentUtterance.pitch = 1;
+                this.currentUtterance.volume = 1;
+                
+                this.currentUtterance.onend = () => {
+                    // Zeige die Aufgabe nach dem Sprechen an
+                    this.taskDisplay.textContent = `${this.currentTask.num1} × ${this.currentTask.num2} = ?`;
+                    
+                    // Button wieder aktivieren
+                    this.startBtn.disabled = false;
+                    
+                    // Starte automatisch die Spracherkennung
+                    setTimeout(() => {
+                        this.startListening();
+                    }, 500);
+                };
+                
+                this.synthesis.speak(this.currentUtterance);
+            }
+            
+            speakFullSolution() {
+                if (!this.currentTask) return;
+                
+                // Stoppe vorherige Sprachausgabe
+                this.synthesis.cancel();
+                
+                const text = `${this.currentTask.num1} mal ${this.currentTask.num2} ist ${this.currentTask.result}`;
+                this.currentUtterance = new SpeechSynthesisUtterance(text);
+                this.currentUtterance.lang = 'de-DE';
+                this.currentUtterance.rate = 0.9; // Feste Geschwindigkeit
+                this.currentUtterance.pitch = 1;
+                this.currentUtterance.volume = 1;
+                
+                this.currentUtterance.onend = () => {
+                    // Button aktivieren
+                    this.startBtn.disabled = false;
+                    
+                    // Nach 2 Sekunden die nächste Aufgabe
+                    setTimeout(() => {
+                        this.generateNewTask();
+                    }, 2000);
+                };
+                
+                this.synthesis.speak(this.currentUtterance);
+            }
+            
+            startListening() {
+                if (this.recognition && !this.isListening) {
+                    try {
+                        this.recognition.start();
+                        this.micStatus.textContent = 'Sage die Antwort...';
+                    } catch (error) {
+                        console.error('Fehler beim Starten der Spracherkennung:', error);
+                    }
+                }
+            }
+            
+            processAnswer(spokenAnswer) {
+                if (!this.currentTask) return;
+                
+                // Extrahiere Zahlen aus der gesprochenen Antwort
+                const numberMatch = spokenAnswer.match(/\d+/);
+                const userAnswer = numberMatch ? parseInt(numberMatch[0]) : null;
+                
+                console.log('Gesprochene Antwort:', spokenAnswer);
+                console.log('Erkannte Zahl:', userAnswer);
+                console.log('Erwartetes Ergebnis:', this.currentTask.result);
+                
+                this.totalAnswers++;
+                
+                if (userAnswer === this.currentTask.result) {
+                    this.correctAnswers++;
+                    this.feedback.textContent = `Richtig! ${userAnswer} ist korrekt! 🎉`;
+                    this.feedback.className = 'feedback correct';
+                } else {
+                    if (userAnswer !== null) {
+                        this.feedback.textContent = `${userAnswer} ist leider falsch. Die richtige Antwort ist ${this.currentTask.result}`;
+                    } else {
+                        this.feedback.textContent = `"${spokenAnswer}" wurde nicht als Zahl erkannt. Die richtige Antwort ist ${this.currentTask.result}`;
+                    }
+                    this.feedback.className = 'feedback incorrect';
+                }
+                
+                this.updateScore();
+                this.startBtn.disabled = true; // Während Sprachausgabe deaktiviert
+                
+                // Komplette Aufgabe mit Lösung sprechen
+                setTimeout(() => {
+                    this.speakFullSolution();
+                }, 1000);
+            }
+            
+            speakFeedback(text) {
+                // Diese Funktion wird nicht mehr benötigt, da wir immer die komplette Lösung sprechen
+            }
+            
+            updateMicrophoneStatus() {
+                if (this.isListening) {
+                    this.micIcon.className = 'mic-icon mic-listening';
+                    this.micStatus.textContent = 'Höre zu...';
+                } else {
+                    this.micIcon.className = 'mic-icon mic-waiting';
+                    this.micStatus.textContent = 'Mikrofon bereit';
+                }
+            }
+            
+            updateScore() {
+                this.correctScore.textContent = this.correctAnswers;
+                this.totalScore.textContent = this.totalAnswers;
+                
+                const percentage = this.totalAnswers > 0 ? 
+                    Math.round((this.correctAnswers / this.totalAnswers) * 100) : 0;
+                this.percentageScore.textContent = `${percentage}%`;
+            }
+            
+            updateSpeechRate() {
+                // Nicht mehr benötigt, da Sprachgeschwindigkeit fest eingestellt ist
+            }
+        }
+        
+        // PWA Installation
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').style.display = 'block';
+        });
+        
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('PWA installation accepted');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installPrompt').style.display = 'none';
+                });
+            }
+        }
+        
+        function dismissInstallPrompt() {
+            document.getElementById('installPrompt').style.display = 'none';
+        }
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZXZlbnQgPT4gewogIGV2ZW50LndhaXRVbnRpbChzZWxmLnNraXBXYWl0aW5nKCkpOwp9KTsKCnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignYWN0aXZhdGUnLCBldmVudCA9PiB7CiAgZXZlbnQud2FpdFVudGlsKHNlbGYuY2xpZW50cy5jbGFpbSgpKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZXZlbnQgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKGZldGNoKGV2ZW50LnJlcXVlc3QpKTsKfSk7')
+                .then(registration => {
+                    console.log('Service Worker registered');
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed');
+                });
+        }
+        
+        // App initialisieren
+        document.addEventListener('DOMContentLoaded', () => {
+            new MultiplicationTrainer();
+        });
+        
+        // Vollbild für iOS
+        window.addEventListener('load', () => {
+            if (window.navigator.standalone === true) {
+                document.body.style.paddingTop = '0';
+            }
+        });
+    </script>
+</body>
+</html>

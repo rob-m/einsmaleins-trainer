@@ -281,11 +281,30 @@
 
         function speak(text, lang = 'de-DE') {
             return new Promise((resolve) => {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang;
-                utterance.rate = 0.9;
-                utterance.onend = resolve;
-                speechSynthesis.speak(utterance);
+                // Warte bis vorherige Sprachausgabe beendet ist
+                speechSynthesis.cancel();
+                
+                setTimeout(() => {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = lang;
+                    utterance.rate = 0.85;
+                    
+                    // Für Englisch: Versuche explizit englische Stimme zu verwenden
+                    if (lang === 'en-US' || lang === 'en-GB') {
+                        const voices = speechSynthesis.getVoices();
+                        const englishVoice = voices.find(voice => 
+                            voice.lang.startsWith('en-') && voice.lang !== 'en-DE'
+                        );
+                        if (englishVoice) {
+                            utterance.voice = englishVoice;
+                        }
+                        utterance.lang = 'en-US';
+                    }
+                    
+                    utterance.onend = resolve;
+                    utterance.onerror = resolve;
+                    speechSynthesis.speak(utterance);
+                }, 100);
             });
         }
 
@@ -317,6 +336,8 @@
                 .replace(/\s+/g, ' ')
                 .replace(/o'clock/g, '')
                 .replace(/[.,!?]/g, '')
+                .replace(/^at\s+/g, '')
+                .replace(/\s+at\s+/g, ' ')
                 .trim();
         }
 
@@ -326,7 +347,18 @@
             const normalizedUser = normalizeAnswer(userAnswer);
             const normalizedCorrect = normalizeAnswer(currentTask.en);
             
-            const isCorrect = normalizedUser === normalizedCorrect;
+            // Erweiterte Vergleichslogik
+            const isExactMatch = normalizedUser === normalizedCorrect;
+            const containsCorrect = normalizedUser.includes(normalizedCorrect);
+            const correctContainsUser = normalizedCorrect.includes(normalizedUser) && normalizedUser.length > 3;
+            
+            // Toleranz für kleine Abweichungen
+            const words1 = normalizedUser.split(' ');
+            const words2 = normalizedCorrect.split(' ');
+            const commonWords = words1.filter(w => words2.includes(w));
+            const similarityRatio = commonWords.length / Math.max(words1.length, words2.length);
+            
+            const isCorrect = isExactMatch || containsCorrect || correctContainsUser || similarityRatio >= 0.7;
             
             resultArea.innerHTML = `
                 <div class="result ${isCorrect ? 'correct' : 'incorrect'}">
@@ -346,22 +378,32 @@
             status.textContent = '';
             
             setTimeout(async () => {
-                await speak(`${currentTask.de} heißt auf Englisch ${currentTask.en}`, 'de-DE');
-                setTimeout(() => {
-                    if (resultArea.innerHTML) {
-                        newTask();
-                    }
-                }, 1000);
+                // Deutsche Einleitung + englische Antwort getrennt sprechen
+                await speak(currentTask.de + ' heißt auf Englisch', 'de-DE');
+                await new Promise(resolve => setTimeout(resolve, 300));
+                await speak(currentTask.en, 'en-US');
+                
+                // Nach 1 Sekunde automatisch nächste Aufgabe
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                loadNextTask();
             }, 100);
         }
 
         async function newTask() {
             stopListening();
             
+            // Wenn Button geklickt wird, nochmal vorlesen
             if (currentTask) {
-                await speak(`${currentTask.de} heißt auf Englisch ${currentTask.en}`, 'de-DE');
+                await speak(currentTask.de + ' heißt auf Englisch', 'de-DE');
+                await new Promise(resolve => setTimeout(resolve, 300));
+                await speak(currentTask.en, 'en-US');
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
+            
+            loadNextTask();
+        }
+
+        async function loadNextTask() {
             
             currentTask = vocabList[Math.floor(Math.random() * vocabList.length)];
             taskText.textContent = currentTask.de;
